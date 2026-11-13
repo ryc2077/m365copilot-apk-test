@@ -71,6 +71,9 @@ jobs:
       - name: Create and boot x86_64 emulator
         run: |
           set -e
+          # avdmanager (Java/XDG) creates AVDs under ~/.config/.android/avd, but the emulator binary
+          # defaults to ~/.android/avd. Force both to the XDG path.
+          export ANDROID_AVD_HOME=$HOME/.config/.android/avd
           export PATH=$ANDROID_HOME/cmdline-tools/latest/bin:$ANDROID_HOME/platform-tools:$ANDROID_HOME/emulator:$PATH
           echo "no" | avdmanager create avd -n test -k "system-images;android-34;google_apis;x86_64" -d "pixel_7" --force
           echo "=== AVD created ==="
