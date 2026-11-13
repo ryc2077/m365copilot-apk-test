@@ -48,7 +48,7 @@ jobs:
       - name: Download APK from Google Drive
         run: |
           set -e
-          pip3 install -q gdown
+          pip3 install --break-system-packages -q gdown
           gdown --fuzzy "https://drive.google.com/file/d/14P_WTYyPaQG1vhZMyQsJ1zR3X6P9tr0G/view?usp=drivesdk" -O app.apk
           ls -la app.apk
           echo "=== sha256 ==="
