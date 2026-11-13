@@ -71,18 +71,21 @@ jobs:
       - name: Create and boot x86_64 emulator
         run: |
           set -e
+          export ANDROID_AVD_HOME=$HOME/.android/avd
           export PATH=$ANDROID_HOME/cmdline-tools/latest/bin:$ANDROID_HOME/platform-tools:$ANDROID_HOME/emulator:$PATH
           echo "no" | avdmanager create avd -n test -k "system-images;android-34;google_apis;x86_64" -d "pixel_7" --force
           echo "=== AVD created ==="
           avdmanager list avd
-          # Note: AVD config lives under $ANDROID_AVD_HOME or ~/.config/.android/avd; do not hardcode ~/.android path.
-          # RAM/cores are set via emulator -memory/-cores flags below.
+          echo "=== AVD home: $ANDROID_AVD_HOME ==="
+          ls "$ANDROID_AVD_HOME/" || true
           nohup emulator -avd test -no-window -no-audio -no-snapshot -gpu swiftshader_indirect -memory 2048 -cores 2 > emulator.log 2>&1 &
           echo $! > emulator.pid
           echo "emulator started, waiting for device (timeout 180s)..."
           timeout 180 adb wait-for-device || echo "adb wait-for-device timed out or failed (rc=$?)"
           echo "=== emulator.log tail ==="
           tail -n 30 emulator.log || true
+          echo "=== adb devices ==="
+          timeout 30 adb devices || true
           echo "=== waiting for boot (up to 15 min) ==="
           for i in $(seq 1 90); do
             BOOT=$(adb shell getprop sys.boot_completed 2>/dev/null | tr -d '\r' || echo "")
@@ -106,8 +109,20 @@ jobs:
       - name: Install APK and launch app
         run: |
           set -e
+          export ANDROID_AVD_HOME=$HOME/.android/avd
           export PATH=$ANDROID_HOME/platform-tools:$PATH
           mkdir -p results
+          echo "=== device check ==="
+          timeout 30 adb devices || true
+          if ! timeout 30 adb shell true 2>/dev/null; then
+            echo "ERROR: no responsive device; skipping install/launch"
+            echo "no device" > results/install.log
+            echo "1" > results/install_rc.txt
+            echo "no device" > results/launch.log
+            echo "NO DEVICE" > results/logcat_filtered.txt
+            echo "" > results/logcat_full.txt
+            exit 1
+          fi
           echo "=== INSTALL (adb install, timeout 900s) ==="
           set +e
           timeout 900 adb install -r -g app.apk > results/install.log 2>&1
@@ -117,9 +132,9 @@ jobs:
           echo "install exit code: $INSTALL_RC"
           echo "$INSTALL_RC" > results/install_rc.txt
           echo "=== package present? ==="
-          adb shell pm list packages | grep officehubrow || echo "PACKAGE NOT LISTED"
+          timeout 30 adb shell pm list packages | grep officehubrow || echo "PACKAGE NOT LISTED"
           echo "=== LAUNCH ==="
-          adb logcat -c
+          timeout 30 adb logcat -c || true
           set +e
           timeout 60 adb shell monkey -p com.microsoft.office.officehubrow.patch -c android.intent.category.LAUNCHER 1 > results/launch.log 2>&1
           LAUNCH_RC=$?
@@ -129,14 +144,14 @@ jobs:
           echo "=== wait 30s for app to settle ==="
           sleep 30
           echo "=== current focused activity ==="
-          adb shell dumpsys window | grep -E "mCurrentFocus|mFocusedApp" | head -n 5 || true
+          timeout 30 adb shell dumpsys window | grep -E "mCurrentFocus|mFocusedApp" | head -n 5 || true
           echo "=== app process running? ==="
-          adb shell ps -A | grep -i officehubrow || echo "NO officehubrow PROCESS"
+          timeout 30 adb shell ps -A | grep -i officehubrow || echo "NO officehubrow PROCESS"
           echo "=== screenshot ==="
-          adb exec-out screencap -p > results/screenshot.png || true
+          timeout 60 adb exec-out screencap -p > results/screenshot.png || true
           ls -la results/screenshot.png || true
           echo "=== logcat (filtered) ==="
-          adb logcat -d > results/logcat_full.txt || true
+          timeout 60 adb logcat -d > results/logcat_full.txt || true
           grep -iE "officehubrow|AndroidRuntime|FATAL|crash|Exception" results/logcat_full.txt | tail -n 100 > results/logcat_filtered.txt || true
           wc -l results/logcat_full.txt results/logcat_filtered.txt || true
           cat results/logcat_filtered.txt | head -n 60 || true
@@ -170,8 +185,8 @@ jobs:
             echo "## Focused activity / process"
             echo ""
             echo '```'
-            adb shell dumpsys window 2>/dev/null | grep -E "mCurrentFocus|mFocusedApp" | head -n 5 || echo "(emulator gone)"
-            adb shell ps -A 2>/dev/null | grep -i officehubrow || echo "NO officehubrow PROCESS"
+            timeout 30 adb shell dumpsys window 2>/dev/null | grep -E "mCurrentFocus|mFocusedApp" | head -n 5 || echo "(emulator gone)"
+            timeout 30 adb shell ps -A 2>/dev/null | grep -i officehubrow || echo "NO officehubrow PROCESS"
             echo '```'
             echo ""
             echo "## Filtered logcat"
