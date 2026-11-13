@@ -75,9 +75,8 @@ jobs:
           echo "no" | avdmanager create avd -n test -k "system-images;android-34;google_apis;x86_64" -d "pixel_7" --force
           echo "=== AVD created ==="
           avdmanager list avd
-          echo "hw.ramSize=2048" >> ~/.android/avd/test.avd/config.ini
-          echo "hw.cpu.ncore=2" >> ~/.android/avd/test.avd/config.ini
-          echo "disk.dataPartition.size=2048M" >> ~/.android/avd/test.avd/config.ini
+          # Note: AVD config lives under $ANDROID_AVD_HOME or ~/.config/.android/avd; do not hardcode ~/.android path.
+          # RAM/cores are set via emulator -memory/-cores flags below.
           nohup emulator -avd test -no-window -no-audio -no-snapshot -gpu swiftshader_indirect -memory 2048 -cores 2 > emulator.log 2>&1 &
           echo $! > emulator.pid
           echo "emulator started, waiting for device (timeout 180s)..."
