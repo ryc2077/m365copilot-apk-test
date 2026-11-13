@@ -80,6 +80,10 @@ jobs:
           avdmanager list avd
           echo "=== AVD home: $ANDROID_AVD_HOME ==="
           ls "$ANDROID_AVD_HOME/" || true
+          echo "=== KVM permissions (runner user is not in kvm group; x86_64 emulator requires KVM) ==="
+          ls -l /dev/kvm || echo "no /dev/kvm"
+          sudo chmod 666 /dev/kvm || true
+          ls -l /dev/kvm
           nohup emulator -avd test -no-window -no-audio -no-snapshot -gpu swiftshader_indirect -memory 2048 -cores 2 > emulator.log 2>&1 &
           echo $! > emulator.pid
           echo "emulator started, waiting for device (timeout 180s)..."
