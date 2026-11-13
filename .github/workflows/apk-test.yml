@@ -49,7 +49,7 @@ jobs:
         run: |
           set -e
           pip3 install --break-system-packages -q gdown
-          gdown --fuzzy "https://drive.google.com/file/d/14P_WTYyPaQG1vhZMyQsJ1zR3X6P9tr0G/view?usp=drivesdk" -O app.apk
+          gdown "https://drive.google.com/uc?id=14P_WTYyPaQG1vhZMyQsJ1zR3X6P9tr0G" -O app.apk
           ls -la app.apk
           echo "=== sha256 ==="
           shasum -a 256 app.apk
