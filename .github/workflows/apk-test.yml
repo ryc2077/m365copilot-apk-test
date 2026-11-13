@@ -71,7 +71,6 @@ jobs:
       - name: Create and boot x86_64 emulator
         run: |
           set -e
-          export ANDROID_AVD_HOME=$HOME/.android/avd
           export PATH=$ANDROID_HOME/cmdline-tools/latest/bin:$ANDROID_HOME/platform-tools:$ANDROID_HOME/emulator:$PATH
           echo "no" | avdmanager create avd -n test -k "system-images;android-34;google_apis;x86_64" -d "pixel_7" --force
           echo "=== AVD created ==="
@@ -109,7 +108,6 @@ jobs:
       - name: Install APK and launch app
         run: |
           set -e
-          export ANDROID_AVD_HOME=$HOME/.android/avd
           export PATH=$ANDROID_HOME/platform-tools:$PATH
           mkdir -p results
           echo "=== device check ==="
