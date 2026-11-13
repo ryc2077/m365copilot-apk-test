@@ -45,11 +45,12 @@ jobs:
           echo "=== sdkmanager list installed ==="
           sdkmanager --list_installed
 
-      - name: Download APK from Google Drive
+      - name: Reassemble APK from repo chunks
         run: |
           set -e
-          pip3 install --break-system-packages -q gdown
-          gdown "https://drive.google.com/uc?id=14P_WTYyPaQG1vhZMyQsJ1zR3X6P9tr0G" -O app.apk
+          ls apk/ | head -n 3
+          ls apk/app.apk.part.* | wc -l
+          cat apk/app.apk.part.* > app.apk
           ls -la app.apk
           echo "=== sha256 ==="
           shasum -a 256 app.apk
