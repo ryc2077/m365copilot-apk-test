@@ -54,7 +54,7 @@ jobs:
           ls -la app.apk
           echo "=== sha256 ==="
           sha256sum app.apk
-          echo "=== expected sha256 starts with a3090f49, size 146771241 ==="
+          echo "=== expected sha256 starts with 33fb61f5, size 146771241 ==="
           test "$(stat -c%s app.apk)" = "146771241" && echo "SIZE OK" || echo "SIZE MISMATCH"
 
       - name: Static APK verification
@@ -168,7 +168,7 @@ jobs:
           {
             echo "# APK test result (x86_64 emulator + ARM translation)"
             echo ""
-            echo "- APK: m365copilot-16.0.20625.20022-single-patch.apk (sha256 a3090f49...)"
+            echo "- APK: m365copilot-16.0.20625.20022-single-patch.apk (sha256 33fb61f5...)"
             echo "- Package: com.microsoft.office.officehubrow.patch"
             echo "- Runner: ubuntu-24.04 (x86_64), emulator x86_64 API 34 google_apis"
             echo "- NOTE: arm64 APK on x86_64 emulator uses ARM translation (houdini). Install success proves the APK is structurally valid; launch via translation is a bonus, not a guarantee of native ARM64 behavior."
